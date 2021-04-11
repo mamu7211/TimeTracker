@@ -5,6 +5,7 @@ const app = new Express();
 
 app.use(Express.json());
 
-app.use("/api/time_records", timeRecordRouter);
+app.use(Express.static("src/public"));
+app.use("/api/time-records", timeRecordRouter);
 
 export default app;
