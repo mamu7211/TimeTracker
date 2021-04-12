@@ -1,6 +1,6 @@
 import TimeRecord from '../model/time_record.js';
 
-class TimeRecordService{
+class TimeRecordService {
 
     constructor(timeRecordRepository) {
         this.timeRecordRepository = timeRecordRepository;
@@ -9,7 +9,7 @@ class TimeRecordService{
     findAll() {
         return this.timeRecordRepository.findAll()
     }
-    
+
     findById(id, successCallback, notFoundCallback) {
         var timeRecord = this._findById(id, notFoundCallback);
         if (timeRecord) successCallback(timeRecord);
@@ -40,12 +40,14 @@ class TimeRecordService{
     }
 
     _validate(data, validator, validationErrorCallback) {
-        const validationResult = validator.validate(data, {abortEarly: false});
+        const validationResult = validator.validate(data, { abortEarly: false });
+        console.log(`Validating: ${JSON.stringify(data)}`);
         if (validationResult.error) {
             var errorMessage = validationResult.error.details.map(detail => detail.message).join(', ');
+            console.log(`Validation failed: ${errorMessage}`)
             if (validationErrorCallback) validationErrorCallback(errorMessage);
             else logger.err("No 'validationErrorCallback'.");
-        }else{
+        } else {
             return validationResult.value;
         }
     }
