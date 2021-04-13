@@ -10,12 +10,14 @@
     "test": "node --experimental-vm-modules node_modules/.bin/jest"
   },
   "author": "mamu",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@tailwindcss/forms": "^0.3.2",
+    "connect-livereload": "^0.6.1",
     "express": "^4.17.1",
     "joi": "^17.4.0",
     "joi-to-swagger": "^5.2.0",
+    "livereload": "^0.9.3",
     "moment": "^2.29.1",
     "tailwindcss": "^2.1.1",
     "uuid": "^8.3.2"

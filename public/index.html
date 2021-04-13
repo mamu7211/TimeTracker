@@ -44,12 +44,15 @@
 
   <!-- New Item-->
   <section class="bg-white max-w-3xl mx-auto rounded p-6 my-3" x-data="newForm()" x-init="init">
-    <form method="POST" x-on:submit.prevent="submitData($dispatch)">
-      <div class="grid grid-cols-2">
-        <p class="text-2xl text-gray-200" x-text="now.day"></p>
-        <p class="text-6xl place-self-end" x-text="now.time"></p>
+    <form method="POST" x-on:submit.prevent="createNew($dispatch)">
+      <div class="">
+        <p class="z-2 text-2xl text-gray-200" x-text="now.day"></p>
+        <p class="relative right-0 z-3 text-6xl place-self-end" x-text="now.time"></p>
       </div>
-      <input type="text" x-model="formData.comment">
+      <div class="mt-20">
+        <input type="text" x-model="formData.tag" placeholder="Tag">
+        <input type="text" x-model="formData.comment" placeholder="Comment">
+      </div>
       <p x-text="message"></p>
       <button class="bg-green-600 rounded p-6 my-3 text-xl" type="submit">Add</button>
     </form>
@@ -58,14 +61,15 @@
         return {
           formData: {
             id: null,
-            tag: "Tag",
+            category: "Category",
+            tag: "",
             start: moment(),
             end: null,
-            comment: "Comment"
+            comment: ""
           },
           now: {
-            day: "12. April 2021",
-            time: "14:39:00"
+            day: "",
+            time: ""
           },
           message: "",
           init() {
@@ -75,13 +79,13 @@
               this.now.time = moment().format("LTS");
             }, 500);
           },
-          submitData(dispatch) {
+          createNew(dispatch) {
             const data = {
-              "start": "1970-01-01T00:00:00.002Z",
-              "end": "1970-01-01T00:00:00.004Z",
-              "category": null,
-              "tag": "Tag",
-              "comment": "Something"
+              "start": new Date(),
+              "end": null,
+              "category": null, //this.formData.category,
+              "tag": this.formData.tag,
+              "comment": this.formData.comment
             };
             const post = async () => {
               this.message = "Saving...";
@@ -105,7 +109,8 @@
     <template x-for="item in items" :key="item">
       <div class="p-6 bg-white rounded my-3">
         <div class="px-1">
-          <small x-text="item.start"></small>
+          <small x-text="moment(item.start).format('DD. MMM YY')"></small>
+          <small x-text="moment(item.start).format('LTS')"></small>
         </div>
       </div>
     </template>
@@ -116,7 +121,6 @@
       return {
         items: [],
         loadItems() {
-          console.log("REFETCH");
           const get = async () => {
             axios.get("/api/time-records/"
             ).then(response => {
