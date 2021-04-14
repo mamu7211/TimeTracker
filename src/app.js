@@ -1,7 +1,5 @@
 import Express from 'express';
 
-
-
 import timeRecordRouter from './routes/time_record_routes.js';
 import livereload from 'livereload'
 import connectlivereload from 'connect-livereload'

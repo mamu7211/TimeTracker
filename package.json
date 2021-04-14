@@ -19,6 +19,7 @@
     "joi-to-swagger": "^5.2.0",
     "livereload": "^0.9.3",
     "moment": "^2.29.1",
+    "mongoose": "^5.12.3",
     "tailwindcss": "^2.1.1",
     "uuid": "^8.3.2"
   },

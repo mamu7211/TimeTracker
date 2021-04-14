@@ -1,4 +1,5 @@
 import TimeRecord from '../model/time_record.js';
+import moment from 'moment';
 
 class TimeRecordService {
 
@@ -6,8 +7,15 @@ class TimeRecordService {
         this.timeRecordRepository = timeRecordRepository;
     }
 
-    findAll() {
-        return this.timeRecordRepository.findAll()
+    findAll(query) {
+        let result = this.timeRecordRepository.findAll()
+        if (query) {
+            if (query.allOpen != undefined) {
+                result = result.filter(timeRecord => timeRecord.end == null);
+            }
+        }
+        console.log(query);
+        return result;
     }
 
     findById(id, successCallback, notFoundCallback) {
@@ -24,11 +32,18 @@ class TimeRecordService {
         if (timeRecord) {
             timeRecord.start = data.start;
             timeRecord.end = data.end;
-            timeRecord.category = data.category;
             timeRecord.tag = data.tag;
             timeRecord.comment = data.comment;
             this._save(timeRecord, TimeRecord.schema.update, successCallback, validationCallback);
         }
+    }
+
+    closeAllOpen() {
+        this.timeRecordRepository.findAllOpen().forEach(timeRecord => {
+            timeRecord.end = moment()
+            this.timeRecordRepository.save(timeRecord);
+            console.log("CLOSING ", timeRecord);
+        });
     }
 
     _save(data, validator, successCallback, validationErrorCallback) {
