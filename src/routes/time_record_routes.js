@@ -8,7 +8,13 @@ var inMemoryRepo = new MongoTimeRecordRepository();
 var service = new TimeRecordService(inMemoryRepo);
 
 router.get("/", (req, res) => {
-    res.json(service.findAll(req.query));
+    service.findAll(req.query,
+        data => res.status(200).json(data),
+        error => res.status(500).json({
+            message: "Internal Server Error",
+            error: error
+        })
+    );
 });
 
 router.post("/", (req, res) => {

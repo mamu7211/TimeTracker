@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import MUUID from 'uuid-mongodb';
 
 export default class MongoTimeRecordRepository {
 
@@ -15,7 +16,7 @@ export default class MongoTimeRecordRepository {
 
         );
         const timeRecordSchema = new mongoose.Schema({
-            _id: mongoose.Schema.Types.ObjectId,
+            _id: { type: String, default: MUUID.v4 },
             start: mongoose.Schema.Types.Date,
             end: mongoose.Schema.Types.Date,
             tag: String,
@@ -23,29 +24,43 @@ export default class MongoTimeRecordRepository {
         });
 
         this.TimeRecord = mongoose.model('TimeRecord', timeRecordSchema);
+
     }
 
     findAll() {
-        return this.TimeRecord.find();
+        return this.TimeRecord.find().then(records => {
+            console.log(records);
+            var result = records.map(result => {
+                console.log("--------------\n", result);
+                return {
+                    id: MUUID.from(result._id).toString(),
+                    start: result.start,
+                    end: result.end,
+                    tag: result.tag,
+                    comment: result.comment
+                }
+            });
+            console.log(result);
+            return result;
+        });
     }
 
-    findAllOpen() {
-        return this.records.filter(record => record.end == null);
-    }
-
-    findById(id) {
-        const results = this.records.filter(record => record.id == id);
-        return results.length == 1 ? results[0] : null;
-    }
-
-    save(data) {
-        if (!data.id) {
-            data = { id: v4(), ...data };
-            this.records.push(data);
-        } else {
-            this.records = this.records.filter(r => r.id != data.id);
-            this.records.push(data);
-        }
-        return data;
+    save(timeRecord) {
+        return this.TimeRecord({
+            _id: timeRecord.id ? MUUID.from(timeRecord.id) : MUUID.v4(),
+            start: timeRecord.start,
+            end: timeRecord.end,
+            tag: timeRecord.tag,
+            comment: timeRecord.comment
+        }).save().then(result => {
+            console.log("MAPPING");
+            return {
+                id: MUUID.from(result._id),
+                start: result.start,
+                end: result.end,
+                tag: result.tag,
+                comment: result.comment
+            }
+        });
     }
 }

@@ -7,15 +7,9 @@ class TimeRecordService {
         this.timeRecordRepository = timeRecordRepository;
     }
 
-    findAll(query) {
-        let result = this.timeRecordRepository.findAll()
-        if (query) {
-            if (query.allOpen != undefined) {
-                result = result.filter(timeRecord => timeRecord.end == null);
-            }
-        }
-        console.log(query);
-        return result;
+    findAll(query, successCallback) {
+        return this.timeRecordRepository.findAll()
+            .then(data => successCallback(data));
     }
 
     findById(id, successCallback, notFoundCallback) {
@@ -46,11 +40,12 @@ class TimeRecordService {
         });
     }
 
-    _save(data, validator, successCallback, validationErrorCallback) {
+    async _save(data, validator, successCallback, validationErrorCallback) {
         const validatedData = this._validate(data, validator, validationErrorCallback);
         if (validatedData) {
-            var savedData = this.timeRecordRepository.save(validatedData);
-            if (successCallback) successCallback(savedData);
+            await this.timeRecordRepository.save(validatedData).then(savedData => {
+                if (successCallback) successCallback(savedData);
+            });
         }
     }
 
