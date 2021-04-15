@@ -189,7 +189,7 @@
             },
             loadItems() {
               const get = async () => {
-                axios.get("/api/time-records/?allOpen"
+                axios.get("/api/time-records/open"
                 ).then(response => {
                   this.items = response.data;
                   this.items.forEach(item => {

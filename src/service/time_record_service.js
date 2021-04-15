@@ -58,11 +58,8 @@ class TimeRecordService {
     }
 
     delete(id, successCallback, notFoundCallback) {
-        console.log("ASDFADF", notFoundCallback);
         this.repo.TimeRecord.findById(MUUID.from(id), (err, timeRecord) => {
-            if (err) {
-                console.log(err);
-            } else if (timeRecord) {
+            if (timeRecord) {
                 timeRecord.delete().then(deleted => successCallback(this._mapTimeRecordToJSON(deleted)));
             } else {
                 notFoundCallback();
@@ -72,19 +69,15 @@ class TimeRecordService {
 
     _validate(data, validator, validationErrorCallback) {
         const validationResult = validator.validate(data, { abortEarly: false });
-        console.log(`Validating: ${JSON.stringify(data)}`);
         if (validationResult.error) {
             var errorMessage = validationResult.error.details.map(detail => detail.message).join(', ');
-            console.log(`Validation failed: ${errorMessage}`)
             if (validationErrorCallback) validationErrorCallback(errorMessage);
-            else logger.err("No 'validationErrorCallback'.");
         } else {
             return validationResult.value;
         }
     }
 
     _mapTimeRecordToJSON(timeRecord) {
-        console.log(timeRecord);
         return {
             id: timeRecord.id,
             start: timeRecord.start,
