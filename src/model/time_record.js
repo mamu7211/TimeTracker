@@ -17,8 +17,8 @@ class TimeRecord {
             tag: Joi.string().min(2).lowercase().trim().max(15).allow(null, "").default(""),
             comment: Joi.string().trim().allow(null, "").default("")
         }),
+
         update: Joi.object({
-            id: Joi.string().guid().required(),
             start: Joi.date().required(),
             end: Joi.alternatives(Joi.date().min(Joi.ref('start', { render: true })), Joi.valid(null, "")).required(),
             tag: Joi.string().min(2).lowercase().trim().max(15).allow(null, "").default(""),

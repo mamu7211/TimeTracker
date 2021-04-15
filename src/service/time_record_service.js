@@ -1,52 +1,73 @@
 import TimeRecord from '../model/time_record.js';
 import moment from 'moment';
+import MUUID from 'uuid-mongodb';
+
 
 class TimeRecordService {
 
-    constructor(timeRecordRepository) {
-        this.timeRecordRepository = timeRecordRepository;
+    constructor(repo) {
+        this.repo = repo;
     }
 
-    findAll(query, successCallback) {
-        return this.timeRecordRepository.findAll()
-            .then(data => successCallback(data));
+    find(query, successCallback) {
+        this.repo.TimeRecord.find(query)
+            .then(records => records.map(this._mapTimeRecordToJSON))
+            .then(successCallback);
     }
 
     findById(id, successCallback, notFoundCallback) {
-        var timeRecord = this._findById(id, notFoundCallback);
-        if (timeRecord) successCallback(timeRecord);
+        this.repo.TimeRecord.findById(MUUID.from(id))
+            .then(record => {
+                if (record) {
+                    successCallback(this._mapTimeRecordToJSON(record))
+                } else {
+                    notFoundCallback();
+                }
+            })
     }
 
     create(data, successCallback, validationCallback) {
-        this._save(data, TimeRecord.schema.create, successCallback, validationCallback);
+        const validatedData = this._validate(data, TimeRecord.schema.create, validationCallback);
+        if (validatedData) {
+            const timeRecord = this._mapJSONToTimeRecord(data);
+            timeRecord.save()
+                .then(this._mapTimeRecordToJSON)
+                .then(json => successCallback(json));
+        }
     }
 
     update(id, data, successCallback, notFoundCallback, validationCallback) {
-        var timeRecord = this._findById(id, null, notFoundCallback);
-        if (timeRecord) {
-            timeRecord.start = data.start;
-            timeRecord.end = data.end;
-            timeRecord.tag = data.tag;
-            timeRecord.comment = data.comment;
-            this._save(timeRecord, TimeRecord.schema.update, successCallback, validationCallback);
-        }
-    }
-
-    closeAllOpen() {
-        this.timeRecordRepository.findAllOpen().forEach(timeRecord => {
-            timeRecord.end = moment()
-            this.timeRecordRepository.save(timeRecord);
-            console.log("CLOSING ", timeRecord);
-        });
-    }
-
-    async _save(data, validator, successCallback, validationErrorCallback) {
-        const validatedData = this._validate(data, validator, validationErrorCallback);
+        const validatedData = this._validate(data, TimeRecord.schema.update, validationCallback);
         if (validatedData) {
-            await this.timeRecordRepository.save(validatedData).then(savedData => {
-                if (successCallback) successCallback(savedData);
+            this.repo.TimeRecord.findById(MUUID.from(id), (err, timeRecord) => {
+                if (err) {
+                    throw Error(err);
+                } else if (timeRecord) {
+                    timeRecord.start = data.start;
+                    timeRecord.end = data.end;
+                    timeRecord.tag = data.tag;
+                    timeRecord.comment = data.comment;
+                    timeRecord.save()
+                        .then(this._mapTimeRecordToJSON)
+                        .then(successCallback);
+                } else {
+                    notFoundCallback();
+                }
             });
         }
+    }
+
+    delete(id, successCallback, notFoundCallback) {
+        console.log("ASDFADF", notFoundCallback);
+        this.repo.TimeRecord.findById(MUUID.from(id), (err, timeRecord) => {
+            if (err) {
+                console.log(err);
+            } else if (timeRecord) {
+                timeRecord.delete().then(deleted => successCallback(this._mapTimeRecordToJSON(deleted)));
+            } else {
+                notFoundCallback();
+            }
+        });
     }
 
     _validate(data, validator, validationErrorCallback) {
@@ -62,16 +83,26 @@ class TimeRecordService {
         }
     }
 
-    _findById(id, notFoundCallback) {
-        var timeRecord = this.timeRecordRepository.findById(id);
-        if (!timeRecord) {
-            if (notFoundCallback) notFoundCallback(`TimeRecord '${id}' not found.`);
-            else console.error("No 'notFoundCallback'.");
+    _mapTimeRecordToJSON(timeRecord) {
+        console.log(timeRecord);
+        return {
+            id: timeRecord.id,
+            start: timeRecord.start,
+            end: timeRecord.end,
+            tag: timeRecord.tag,
+            comment: timeRecord.comment
         }
-        return timeRecord;
     }
 
-
+    _mapJSONToTimeRecord(json) {
+        return this.repo.TimeRecord({
+            _id: json.id ? MUUID.from(json.id) : MUUID.v4(),
+            start: json.start,
+            end: json.end,
+            tag: json.tag,
+            comment: json.comment
+        });
+    }
 }
 
 export default TimeRecordService

@@ -1,14 +1,13 @@
 import { Router } from 'express';
 //import TimeRecordRepository from '../repository/in_memory_time_record_repository.js';
-import MongoTimeRecordRepository from '../repository/mongo_time_record_repository.js';
+import MongoRepo from '../repository/mongo_repo.js';
 import TimeRecordService from '../service/time_record_service.js';
 
 var router = Router();
-var inMemoryRepo = new MongoTimeRecordRepository();
-var service = new TimeRecordService(inMemoryRepo);
+var service = new TimeRecordService(new MongoRepo);
 
 router.get("/", (req, res) => {
-    service.findAll(req.query,
+    service.find(req.query,
         data => res.status(200).json(data),
         error => res.status(500).json({
             message: "Internal Server Error",
@@ -17,21 +16,18 @@ router.get("/", (req, res) => {
     );
 });
 
-router.post("/", (req, res) => {
-    if (req.query.autoClose && req.query.autoClose == "true") {
-        service.closeAllOpen();
-    }
-    service.create(
-        req.body,
-        createdData => res.json(createdData),
-        validationError => res.status(400).send(validationError)
+router.get("/:id", (req, res) => {
+    service.findById(req.params.id,
+        data => res.status(200).json(data),
+        notFoundError => res.status(404).send(notFoundError),
     );
 });
 
-router.get("/:id", (req, res) => {
-    service.findById(req.params.id,
-        loadedData => res.json(loadedData),
-        notFoundError => res.status(404).send(notFoundError)
+router.post("/", (req, res) => {
+    service.create(
+        req.body,
+        data => res.status(200).json(data),
+        validationError => res.status(400).send(validationError)
     );
 });
 
@@ -39,11 +35,31 @@ router.put("/:id", (req, res) => {
     service.update(
         req.params.id,
         req.body,
-        updatedData => res.json(updatedData),
-        validationError => res.status(400).send(validationError),
-        notFoundError => res.status(404).send(notFoundError)
-    );
-})
+        data => res.status(200).json(data),
+        notFoundError => res.status(404).send(notFoundError),
+        validationError => res.status(400).send(validationError)
+    )
+});
+
+router.delete("/:id", (req, res) => {
+    service.delete(req.params.id,
+        data => res.status(200).json(data),
+        notFoundError => res.status(404).send(notFoundError));
+});
+
+
+
+
+
+// router.put("/:id", (req, res) => {
+//     service.update(
+//         req.params.id,
+//         req.body,
+//         updatedData => res.json(updatedData),
+//         validationError => res.status(400).send(validationError),
+//         notFoundError => res.status(404).send(notFoundError)
+//     );
+// })
 
 
 export default router;
