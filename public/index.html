@@ -55,24 +55,19 @@
           <div class="flex content-end">
             <span class="text-xl text-align:right text-gray-200" x-text="now.day"></span>
           </div>
-          <button type="button" @click="expanded = ! expanded" :class="formData.tag.length == 0 ? 'hidden' : 'show'"
+          <!-- <button type="button" @click="expanded = ! expanded" :class="formData.tag.length == 0 ? 'hidden' : 'show'"
             class=" focus:border-0 md:hidden">
             <svg class="text-gray-400 fill-current h-6 w-8" view-box="0 0 8 24">
               <circle r="3" cx="5" cy="12"></circle>
               <circle r="3" cx="16" cy="12"></circle>
               <circle r="3" cx="27" cy="12"></circle>
             </svg>
-          </button>
+          </button> -->
         </div>
-        <div :class="!expanded ? 'show' : 'hidden'" class="flex flex-row justify-between mt-8">
-          <div class="uppercase flex-grow text-4xl text-center text-gray-400">
-            <p x-text="formData.tag"></p>
-          </div>
-        </div>
-        <div :class="expanded ? 'show' : 'hidden'" class="md:show">
+        <div class="md:show">
           <div class="mt-8">
             <input id="#tag" type="text" x-on:change="tagChanged()" :class="formData.tag.length == 0 ? '' : 'uppercase'"
-              class="rounded focus:ring-4 focus:ring-green-600 mt-1 block w-full text-4xl text-left md:text-center"
+              class="rounded bg-gray-300 ring-4 ring-gray-600 focus:ring-4 focus:ring-green-600 mt-1 block w-full text-4xl placeholder-gray-600 text-white text-center"
               x-model="formData.tag" placeholder="Add a Tag...">
           </div>
           <div class="mt-8">
@@ -92,8 +87,8 @@
         <button id="submitButton" :class="formData.tag.length > 0 ? 'bg-green-600' : 'bg-gray-300'"
           class="rounded p-2 mt-6 text-xl text-white w-full" type="submit">
           <div class="flex flex-row justify-between">
-            <div class="w-full text-right">Start</div>
-            <svg class="w-full pl-2 fill-current h-6 w-8" view-box="0 0 24 24">
+            <div class="w-full text-center" x-text="autoClose ? 'Start & Autoclose' : 'Start'"></div>
+            <svg class="pl-2 fill-current h-6 w-8" view-box="0 0 24 24">
               <polygon points="5,5 24,16 5,24" />
             </svg></span>
           </div>
@@ -113,7 +108,6 @@
               day: "",
               time: ""
             },
-            expanded: true,
             autoClose: false,
             message: "",
             init() {
@@ -188,17 +182,14 @@
               return `${item.tag} ${moment(item.start).format("LTS")}`;
             },
             loadItems() {
-              const get = async () => {
-                axios.get("/api/time-records/open"
-                ).then(response => {
-                  this.items = response.data;
-                  this.items.forEach(item => {
-                    var self = item;
-                    item.expanded = false;
-                  })
-                }).catch(error => console.log("ERROR", error.response.data))
-              };
-              get();
+              axios.get("/api/time-records/open"
+              ).then(response => {
+                this.items = response.data;
+                this.items.forEach(item => {
+                  var self = item;
+                  item.expanded = false;
+                })
+              }).catch(error => console.log("ERROR", error.response.data));
             },
             closeItem(item) {
               item.end = moment();
@@ -208,14 +199,11 @@
                 tag: item.tag,
                 comment: item.comment
               }
-              const get = async () => {
-                axios.put(`/api/time-records/${item.id}`, data
-                ).then(response => {
-                  console.log(response);
-                }).catch(error => console.log("ERROR", error.response.data))
-              };
-              get();
-              this.loadItems();
+              axios.put(`/api/time-records/${item.id}`, data
+              ).then(response => {
+                console.log(response);
+                this.loadItems();
+              }).catch(error => console.log("ERROR", error.response.data));
             }
           }
         }
